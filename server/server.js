@@ -8,7 +8,7 @@ import {serve} from "inngest/express"
 import showRouter from './routes/showRoutes.js';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 5000;
 
 await connectDB()
 
@@ -24,9 +24,10 @@ app.use('/api/show', showRouter)
 
 
 if (process.env.NODE_ENV !== "production") {
-    app.listen(5000, () => {
-      console.log(`server listening at http://localhost:${port}`);
-    });
-  }
+  app.listen(5000, () => {
+    console.log("Server running");
+  });
+}
+
   
  export default app;
