@@ -1,3 +1,4 @@
+import Booking from "../models/Booking.js";
 import Show from "../models/show.js"
 
 
@@ -30,7 +31,45 @@ try {
     if(!isAvailable){
         return res.json({success:false, message: "selected Seats are not available."})
     }
+
+    //Get the show details
+    const showData = await Show.findById(showId).populate('movie');
+
+    //create a new booking 
+    const booking = await Booking.create({
+        user: userId,
+        show: showId,
+        amount: showData.showPrice * selectedSeats.length,
+        bookedSeats: selectedSeats
+    })
+
+    selectedSeats.map((seat)=>{
+     showData.occupiedSeats[seat] = userId;
+    })
+
+    showData.markModified('occupiedSeats');
+
+    await showData.save();
+
+    //stripe Gateway Initialize
+    res.json({sucess: true, message: "booked sucessfully"})
 } catch (error) {
-    
+    console.error(error)
+    res.json({success: false, message: error.message}) 
 }
+}
+
+export const getOccupiedSeats = async(req, res) => {
+    try {
+        const {showId} = req.params();
+        const showData = await Show.findById(showId)
+    
+        const occupiedSeats = Object.keys(showData.occupiedSeats)
+    
+        res.json({success: true, occupiedSeats})
+    } catch (error) {
+        console.error(error)
+        res.json({success: false, message: error.message}) 
+    }
+   
 }
