@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom"
-import { assets, dummyDateTimeData, dummyShowData } from "../assets/assets";
+import { useParams } from "react-router-dom"
+ import { assets } from "../assets/assets";
 import Loading from "../components/Loading";
 import  { ClockIcon, ArrowRightIcon } from 'lucide-react'
 import isoTimeFormat from "../lib/isoTimeFormat";
 import BlueColor from "../components/BlueColor";
 import toast from 'react-hot-toast'
+import { useAppContext } from "../context/AppContext";
 
 const SeatLayout = () => {
 
@@ -15,14 +16,19 @@ const groupRows = [['A', 'B'], ['C','D'], ['E','F'], ['G','H'], ['I', 'J']]
   const [selectedSeats, setSelectedSeats] = useState([])
   const [selectedTime, setSelectedTime] = useState(null)
   const [show, setShow] = useState(null)
+  const [occupiedSeats, setOccupiedSeats] = useState([])
+
+  // const navigate = useNavigate();
+  const {axios, getToken, user} = useAppContext();
 
   const getShow = async() => {
-    const show = dummyShowData.find(show => show._id === id)
-    if(show){
-      setShow({
-        movie: show,
-        dateTime: dummyDateTimeData
-      })
+    try {
+      const {data} = await axios.get(`/api/show/${id}`)
+      if(data.success) {
+        setShow(data)
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -31,21 +37,25 @@ const groupRows = [['A', 'B'], ['C','D'], ['E','F'], ['G','H'], ['I', 'J']]
       return toast("please select time first")
     }
     if(!selectedSeats.includes(seatId) && selectedSeats.length > 4){
-      return toast("You can only 5 seats")
+      return toast("You can only select 5 seats")
+    }
+    if(occupiedSeats.includes(seatId)){
+     return toast('this seat is already booked')
     }
     setSelectedSeats(prev => prev.includes(seatId) ? prev.filter(seat => seat!== seatId) : 
     [...prev, seatId])
 }
 
   const renderSeats = (row, count = 9) => (
-    <div key={row} className="flex gap-2 mt-2">
+    <div key={row}  className="flex gap-2 mt-2">
       <div className="flex flex-wrap items-center justify-center gap-2">
         {Array.from({length:count}, (_, i)=>{
           const seatId = `${row}${i + i}`;
           return (
-            <button key={seatId} onClick={()=> handleSeatClick (seatId) } 
+            <button key={seatId} onClick={()=> handleSeatClick(seatId) } 
             className={`h-8 w-8 rounded border-primary/60 cursor-pointer 
-            ${selectedSeats.includes(seatId) && "bg-primary text-white"}`} >
+            ${selectedSeats.includes(seatId) && "bg-primary text-white"} 
+            ${occupiedSeats.includes(seatId) && "opacity-50"}`} >
              {seatId}
             </button>
           )
@@ -53,9 +63,46 @@ const groupRows = [['A', 'B'], ['C','D'], ['E','F'], ['G','H'], ['I', 'J']]
       </div>
     </div>
   )
+
+  const getOccupiedSeats = async()=>{
+    try {
+      const {data} = await axios.get(`/api/booking/seats/${selectedTime.showId}`)
+      if(data.success){
+        setOccupiedSeats(data.occupiedSeats)
+      }else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const bookTickets = async()=>{
+    try {
+      if(!user) return toast.error("Please login to processed")
+
+        if(!selectedTime || !selectedSeats.length ) return toast.error("Please select a time and seats")
+          const {data} = await axios.post('/api/booking/create', {showId: 
+        selectedTime.showId, selectedSeats}, {headers: {Authorization: `Bearer ${await getToken()}`}})
+
+        if(data.success){
+          window.location.href = data.url;
+        }else {
+          toast.error(data.message)
+        }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
   useEffect(()=>{
     getShow()
   },[])
+
+  useEffect(()=>{
+    if(selectedTime){
+      getOccupiedSeats()
+    }
+  },[selectedTime])
   return show ? (
     <div className="flex flex-col md:flex-row px-6 md:16 lg:px-40 py-30 
     md:pt-50">
@@ -97,7 +144,8 @@ const groupRows = [['A', 'B'], ['C','D'], ['E','F'], ['G','H'], ['I', 'J']]
         </div>
         </div>
 
-        <button className="flex items-center gap-1 mt-20 px-10 py-3 text-sm 
+        <button onClick={bookTickets}
+         className="flex items-center gap-1 mt-20 px-10 py-3 text-sm 
         bg-primary hover:bg-primary-dull transition rounded-full font-medium 
         cursor-pointer active:scale-95">
           Proceed to checkout

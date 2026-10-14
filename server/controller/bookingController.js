@@ -26,7 +26,7 @@ try {
     const {origin} = req.headers;
 
     //check if the seat is available for the selected show
-    const isAvailable = await checkSeatsAvailability(showId, selectedSeats)
+    const isAvailable = await checkSeatsAvailabilty(showId, selectedSeats)
 
     if(!isAvailable){
         return res.json({success:false, message: "selected Seats are not available."})
@@ -52,7 +52,44 @@ try {
     await showData.save();
 
     //stripe Gateway Initialize
-    res.json({sucess: true, message: "booked sucessfully"})
+ const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY)
+
+ //Creating line items to for stripe
+ const line_items = [
+    {
+        price_data: {
+            currency: "usd",
+            product_data: {
+                name: showData.movie.title
+            },
+            unit_amount: Math.floor(booking.amount) * 100
+        },
+        quantity: 1
+    }]
+
+    const session = await stripeInstance.checkout.sessions.create({
+        success_url: `${origin}/loading/my-bookings`,
+        cancel_url: `${origin}/my-bookings`,
+        line_items: line_items,
+        mode: "payment",
+        metadata: {
+            bookingId: booking._id.toString()
+        },
+        expires_at: Math.floor(Date.now() / 1000) + 30 + 60, //expire in 30 minutes
+    })
+    
+    booking.paymentLink = session.url
+    await booking.save()
+
+    // Run inngest sheduler Function to check payment status after 10 minutes
+    await inngest.send({
+        name: "app/checkpayment",
+        data: {
+            boookingId: booking._id.toString()
+        }
+    })
+
+    res.json({sucess: true, url: session.url})
 } catch (error) {
     console.error(error)
     res.json({success: false, message: error.message}) 

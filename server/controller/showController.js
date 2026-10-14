@@ -72,6 +72,12 @@ export const addShow = async(req, res) => {
         if(showsToCreate.length > 0){
             await Show.insertMany(showsToCreate);
         }
+
+        //Trigger Inngest event
+        await inngest.send({
+            name: "app/show.added",
+            data: {movieTitle: movie.title}
+        })
         res.json({success:true, message: "show Added successfully"});
     } catch (error) {
         console.error(error)
@@ -103,7 +109,7 @@ export const getshow = async(req, res) => {
     try {
         const {movieId} = req.params;
         //get all upcoming shows for the movie
-        const shows = await Shows.find({movie:movieId, showDateTime: {$gte: new Date()}})
+        const shows = await Show.find({movie:movieId, showDateTime: {$gte: new Date()}})
 
         const movie = await Movie.findById(movieId);
         const dateTime = {};

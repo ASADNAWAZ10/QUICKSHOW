@@ -12,7 +12,7 @@ const DateSelect = ({dateTime, id}) => {
     if(!selected){
       return toast('please select a date')
     }
-    navigate(`/movies/${id}/${id}/${selected}`)
+    navigate(`/movies/${id}/${selected}`)
     scrollTo(0,0)
   }
   return (
@@ -21,8 +21,8 @@ const DateSelect = ({dateTime, id}) => {
        relative p-8 bg-primary/10 border-primary/20 rounded-lg">
           <BlueColor top="-100px"  left="-100px"/>
           <BlueColor top="100px"  left="-100px"/>
-
           <div>
+            
             <p className="text-lg font-semibold">Choose Date</p>
             <div className="flex items-center gap-6 text-sm mt-5 ">
               <ChevronLeftIcon width={28} />

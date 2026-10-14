@@ -29,14 +29,14 @@ const Footer = () => {
                   <div>
                       <h2 className="font-semibold mb-5">Get in touch</h2>
                       <div className="text-sm space-y-2">
-                          <p>+1-234-567-890</p>
-                          <p>contact@example.com</p>
+                          <p>+92302-9496303</p>
+                          <p>asadnawazofficial20@gmail.com</p>
                       </div>
                   </div>
               </div>
           </div>
           <p className="pt-4 text-center text-sm pb-5">
-              Copyright {new Date().getFullYear()} © <a href="https://prebuiltui.com">AsadNawaz</a>. All Right Reserved.
+              Copyright {new Date().getFullYear()} © <a href="https://personal-portfolio-gamma-one-84.vercel.app">AsadNawaz</a>. All Right Reserved.
           </p>
       </footer>
   )

@@ -5,7 +5,7 @@ import Profile from './Profile.jpg'
 export const assets = {
     logo, 
     logos,
-  Profile
+    Profile
 }
 
 export const dummyShowData = [

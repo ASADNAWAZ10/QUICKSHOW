@@ -1,11 +1,13 @@
 import {ArrowRight} from 'lucide-react'
 import {useNavigate} from 'react-router-dom'
 import BlueColor from './BlueColor'
-import { dummyShowData } from '../assets/assets'
+// import { dummyShowData } from '../assets/assets'
 import MovieCard from './MovieCard'
+import { useAppContext } from '../context/AppContext'
 
 const FeatureSelection = () => {
   const navigate = useNavigate()
+  const {shows} = useAppContext()
   return (
     <div className='px-6 md:px-16 lg:24 xl:px-14 overflow-hidden'>
       <div className='relative flex items-center justify-between pt-20 pb-10'>
@@ -14,12 +16,12 @@ const FeatureSelection = () => {
         <button onClick={()=> navigate('/movies')}
          className='group flex items-center gap-2 text-gray-300 cursor-pointer'>
           View All
-          <ArrowRight className='group-hover:transition-x-0.5 transition w-4.5 h-4.5'/>
+          <ArrowRight className='group-hover:translate-x-0.5 transition w-4.5 h-4.5'/>
         </button>
       </div>
 
       <div className='flex flex-wrap max-sm:justify-center gap-8 mt-8'>
-        {dummyShowData.slice(0, 4).map((show)=> (
+        {shows.slice(0, 4).map((show)=> (
           <MovieCard key={show._id} movie={show} />
         ))}
       </div>
